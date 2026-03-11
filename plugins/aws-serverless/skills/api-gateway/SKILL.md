@@ -71,7 +71,7 @@ Choose the right API type first. This decision affects every downstream choice.
 
 **Use REST API when**: you are building APIs for external consumers, partners, or multi-tenant platforms; need to enforce per-consumer rate limits and quotas; require request validation, caching, or WAF at the API layer; need private endpoints, resource policies, or canary deployments; or are building an API product with monetization and governance requirements.
 
-**Use HTTP API when**: you are building lightweight APIs or simple backend proxies; cost and latency are the primary concerns; you don't need per-consumer throttling, request validation, caching, or WAF at the API layer; and native JWT authorization with OIDC/OAuth 2.0 meets your auth needs. Accept the hard 30s timeout and lack of API management features.
+**Use HTTP API when**: you are building lightweight APIs or simple backend proxies; cost and latency are the primary concerns; you don't need per-consumer throttling, request validation, caching, or WAF at the API layer; and native JWT authorization with OIDC/OAuth 2.0 meets your auth needs. Accept the hard 30s timeout and lack of API management features. For WAF, edge caching, or edge compute, place a CloudFront distribution in front of the HTTP API.
 
 **Use WebSocket API when you need**: persistent bidirectional connections for real-time use cases (chat, notifications, live dashboards).
 
@@ -83,7 +83,7 @@ Before implementation, gather requirements systematically. Consult `references/r
 
 Key design decisions:
 1. **API type**: Use the decision table above
-2. **Endpoint type**: Edge-optimized (global clients), Regional (same-region clients), Private (VPC-only access)
+2. **Endpoint type**: Edge-optimized (default for global clients; optimizes TCP connections via CloudFront POPs but does not cache at the edge), Regional (same-region clients, or global clients needing their own CloudFront distribution for edge caching, edge compute, granular WAF control, or geo-based routing), Private (VPC-only access, REST API only)
 3. **Topology**: Centralized (single domain, path-based routing) vs Distributed (subdomains per service)
 4. **Authentication**: See `references/authentication.md` for the decision tree
 
@@ -104,6 +104,7 @@ Consult these references based on what you're building:
 
 - **Throttling**: Account-level default is 10,000 rps / 5,000 burst (adjustable; request increases via AWS Support). Configure stage-level and method-level throttling via usage plans. See `references/performance-scaling.md`
 - **Caching** (REST only): Default TTL 300s, max 3600s. Only GET methods cached by default. Max cached response 1 MB
+- **Edge caching** (all API types): For edge caching, place a self-managed CloudFront distribution in front of a Regional API. CloudFront reduces latency, backend load, AND cost (cached responses never reach API Gateway). Also enables edge compute (CloudFront Functions, Lambda@Edge) and granular cache behaviors per path. Use a Regional endpoint, not edge-optimized, when pairing with your own CloudFront distribution
 - **Scaling**: API Gateway scales automatically but plan the entire stack (Lambda concurrency, DynamoDB capacity)
 
 ### Step 4: Set Up Observability
@@ -172,6 +173,7 @@ When diagnosing API Gateway errors, consult `references/troubleshooting.md` for 
 8. **JWT authorizer public keys cached 2 hours**. Account for this in key rotation
 9. **Management API rate limit: 10 rps / 40 burst**. Heavy automation can hit this
 10. **Always redeploy REST API after configuration changes**. Changes don't take effect until deployed
+11. **Edge-optimized endpoints do NOT cache at the edge** — they only optimize TCP connections via CloudFront POPs. If you need edge caching, edge compute (CloudFront Functions, Lambda@Edge), or granular CloudFront control, use a Regional API with your own CloudFront distribution instead
 
 For additional pitfalls (header handling, URL encoding, caching charges, canary deployments, usage plans), see `references/pitfalls.md`.
 

@@ -100,7 +100,6 @@ Consult these references based on what you're building:
 - **Security**: `references/security.md`: mTLS (API Gateway native + CloudFront viewer mTLS), TLS policies, resource policies, WAF, HttpOnly cookies, CRL checks
 - **SAM/CloudFormation**: `references/sam-cloudformation.md`: IaC patterns, OpenAPI extensions, VTL reference, binary data
 - **SAM service integration templates**: `references/sam-service-integrations.md`: EventBridge, SQS, DynamoDB CRUD, Kinesis, Step Functions (REST + WebSocket) templates
-- **CDK patterns**: For CDK API Gateway patterns, see [`aws-serverless-deployment/references/cdk-serverless-patterns.md`](../aws-serverless-deployment/references/cdk-serverless-patterns.md)
 
 ### Step 3: Configure Performance and Scaling
 

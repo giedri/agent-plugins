@@ -55,7 +55,7 @@ White-label domain support allows SaaS providers to serve multiple external cust
 
 ## Routing Rules (Preferred for New Domains)
 
-Declarative routing on custom domain names without Lambda logic. Launched June 2025. **Routing rules are the recommended approach** over base path mappings for new custom domains, offering header-based routing, priority-based evaluation, and simpler management. Supports public and private REST APIs only. HTTP API and WebSocket API do not support routing rules; use base path mappings instead.
+**Routing rules are the recommended approach** over base path mappings for new custom domains, offering header-based routing, priority-based evaluation, and simpler management. Supports public and private REST APIs only. HTTP API and WebSocket API do not support routing rules; use base path mappings instead.
 
 ### Rule Structure
 - **Conditions**: Up to 2 `MatchHeaders` + 1 `MatchBasePaths` (AND logic)
@@ -89,21 +89,15 @@ Declarative routing on custom domain names without Lambda logic. Launched June 2
 
 ## Header-Based API Versioning
 
-Route API requests to different backend implementations based on a version header. Use routing rules (REST API) for a native, infrastructure-only solution without CloudFront or Lambda@Edge.
+Route API requests to different backend implementations based on a version header (REST APIs only). 
 
-**Pattern: Routing rules (REST API, recommended)**
 - Create a routing rule per version with `MatchHeaders` on the version header (e.g., `X-API-Version: v1`, `X-API-Version: v2`)
 - Each rule invokes the corresponding API/stage
 - Add a catch-all rule at the lowest priority to route unversioned requests to the default (latest stable) version
 - Monitor with `$context.customDomain.routingRuleIdMatched` in access logs to track version adoption
 - No additional infrastructure, no Lambda@Edge, no DynamoDB. Purely declarative
 
-**Pattern: CloudFront + Lambda@Edge (HTTP API, or when edge caching/WAF is needed)**
-- CloudFront + Lambda@Edge for origin request routing based on custom header
-- DynamoDB global table stores version-to-API-endpoint mappings
-- Lambda@Edge modifies Origin and Host header based on version header
-- Cache mappings in Lambda@Edge memory; DynamoDB global tables reduce edge latency
-- Use this pattern when you need CloudFront for edge caching, WAF, or when using HTTP API (which does not support routing rules)
+
 
 ## Host Header Forwarding
 

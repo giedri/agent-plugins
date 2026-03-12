@@ -29,7 +29,6 @@ A Deployment in API Gateway is an **immutable snapshot of your API configuration
 ### WebSocket API
 - A stage can be created without a deployment (then updated via UpdateStage)
 - Does **not** support automatic deployments (AutoDeploy); every change requires an explicit redeployment
-- Explicit deployments only: you must redeploy the API after any configuration change
 
 ### Deployment Propagation
 
@@ -70,6 +69,7 @@ aws apigateway update-stage --rest-api-id <api-id> --stage-name <stage> \
 - **CloudFormation drift warning**: After manual rollback, the stage's deploymentId diverges from what CloudFormation tracks. The next `sam deploy` or stack update will overwrite your manual rollback with whatever deployment CloudFormation computes. Always follow up with a proper IaC deployment to re-synchronize state
 
 ## Blue/Green Zero-Downtime Deployments
+Based on the blog https://aws.amazon.com/blogs/compute/zero-downtime-blue-green-deployments-with-amazon-api-gateway/
 
 Use custom domain API mapping to switch traffic between two environments:
 
@@ -83,7 +83,7 @@ Use custom domain API mapping to switch traffic between two environments:
 2. Deploy custom domain stack pointing to blue
 3. Deploy green stack
 4. Test green via its direct invoke URL
-5. Update custom domain stack: change `ActiveApiId` and `ActiveApiStage` to green
+5. Update custom domain stack to activate green stack
 6. Monitor and rollback by re-pointing to blue if needed (see notes on propagation below)
 7. **Cleanup**: Delete the **inactive** (old) API stack first (it receives no traffic). Keep the custom domain stack and active API stack running. Only delete the custom domain stack when decommissioning the entire service. **Never delete the custom domain stack while APIs are still serving traffic**, as this removes the production endpoint immediately
 

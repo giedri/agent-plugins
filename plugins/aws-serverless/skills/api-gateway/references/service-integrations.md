@@ -9,7 +9,7 @@ The patterns below cover the most commonly used service integrations. REST API `
 
 ## EventBridge Integration
 
-Integrates directly with EventBridge PutEvents API (see [aws-samples/serverless-patterns/apigw-rest-api-eventbridge-sam](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-rest-api-eventbridge-sam)):
+Integrates directly with EventBridge PutEvents API (see [aws-samples/serverless-patterns/apigw-rest-api-eventbridge-sam](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-rest-api-eventbridge-sam)). For a complete SAM template, see [SAM Service Integration Templates — EventBridge](sam-service-integrations.md#direct-aws-service-integration-eventbridge).
 - Use `Type: AWS` integration with URI `arn:aws:apigateway:{region}:events:action/PutEvents`
 - Set required headers via `RequestParameters` (e.g., `integration.request.header.X-Amz-Target: "'AWSEvents.PutEvents'"`, `integration.request.header.Content-Type: "'application/x-amz-json-1.1'"`). Alternative: set via VTL `$context.requestOverride.header` in the mapping template, but avoid applying the same header in both places ([double-application causes 5XX](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-override-request-response-parameters.html))
 - VTL mapping template transforms HTTP requests into EventBridge events. Use `#foreach` to batch multiple events from a single API call
@@ -24,7 +24,7 @@ Integrates directly with EventBridge PutEvents API (see [aws-samples/serverless-
 
 ## SQS Integration (Async Buffer)
 
-Integrates directly with SQS SendMessage API to decouple producers from consumers (see [aws-samples/serverless-patterns/apigw-sqs-lambda-iot](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-sqs-lambda-iot)):
+Integrates directly with SQS SendMessage API to decouple producers from consumers (see [aws-samples/serverless-patterns/apigw-sqs-lambda-iot](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-sqs-lambda-iot)). For a complete SAM template, see [SAM Service Integration Templates — SQS](sam-service-integrations.md#direct-aws-service-integration-sqs).
 - Use `Type: AWS` integration with URI `arn:aws:apigateway:{region}:sqs:path/{account-id}/{queue-name}`
 - Two protocol options:
   - **AWS query protocol**: Set `Content-Type: 'application/x-www-form-urlencoded'` header in integration request. Mapping template: `Action=SendMessage&MessageBody=$util.urlEncode($input.body)`
@@ -51,7 +51,7 @@ Integrates directly with SNS Publish API for fan-out to multiple subscribers (se
 
 ## DynamoDB Integration (Write-Through with Streams)
 
-Integrates directly with DynamoDB APIs for full CRUD without Lambda:
+Integrates directly with DynamoDB APIs for full CRUD without Lambda. For complete SAM templates (OpenAPI-based and inline), see [SAM Service Integration Templates — DynamoDB Full CRUD](sam-service-integrations.md#direct-aws-service-integration-dynamodb-full-crud).
 - Use `Type: AWS` integration with URI `arn:aws:apigateway:{region}:dynamodb:action/{action}` (supports `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`, `Query`, and `Scan`)
 - VTL mapping template transforms HTTP request into DynamoDB JSON format:
   - **Request template**: Maps request body/parameters to DynamoDB item attributes with type descriptors (`S`, `N`, `M`, `L`, etc.)
@@ -75,7 +75,7 @@ Integrates directly with DynamoDB APIs for full CRUD without Lambda:
 
 ## Kinesis Data Streams Integration (High-Throughput Ingestion)
 
-Integrates directly with Kinesis Data Streams PutRecord/PutRecords APIs for high-volume data ingestion (see [aws-samples/serverless-patterns/apigw-kinesis-lambda](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-kinesis-lambda)):
+Integrates directly with Kinesis Data Streams PutRecord/PutRecords APIs for high-volume data ingestion (see [aws-samples/serverless-patterns/apigw-kinesis-lambda](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-kinesis-lambda)). For a complete SAM template, see [SAM Service Integration Templates — Kinesis Data Streams](sam-service-integrations.md#direct-aws-service-integration-kinesis-data-streams).
 - Use `Type: AWS` integration with URI `arn:aws:apigateway:{region}:kinesis:action/{action}` (e.g., `action/PutRecord`, `action/PutRecords`)
 - Use `PassthroughBehavior: WHEN_NO_TEMPLATES` to ensure requests are only accepted when a matching mapping template exists
 - VTL mapping template constructs the Kinesis payload:
@@ -91,7 +91,7 @@ Integrates directly with Kinesis Data Streams PutRecord/PutRecords APIs for high
 
 ## Step Functions Integration (Workflow Orchestration)
 
-Integrates directly with Step Functions to orchestrate multi-step workflows without Lambda glue code:
+Integrates directly with Step Functions to orchestrate multi-step workflows without Lambda glue code. For complete SAM templates (REST and WebSocket), see [SAM Service Integration Templates — Step Functions](sam-service-integrations.md#direct-aws-service-integration-step-functions).
 
 **REST API → Step Functions** (see [aws-samples/serverless-patterns/apigw-rest-stepfunction](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-rest-stepfunction)):
 - Two execution modes available:

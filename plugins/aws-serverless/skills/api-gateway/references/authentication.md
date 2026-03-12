@@ -50,29 +50,6 @@ Is the consumer an AWS service or resource?
 - **Caching**: Disabled by default (TTL=0), unlike REST API (TTL=300s). Add `$context.routeKey` to identity sources to cache per-route when enabling caching
 - **Timeout**: 10,000ms max
 
-### Common Patterns
-
-**Multi-tenant per-tenant throttling**:
-Dynamic API key injection for per-tenant rate limiting without exposing API keys to tenants:
-1. **Onboarding**: For each tenant, create an API key in API Gateway, associate it with a tiered usage plan (bronze/silver/gold), and store the `tenantId → apiKey` mapping in DynamoDB
-2. **Auth flow**: Tenant authenticates with external IdP (Auth0, Cognito, etc.), receives JWT with tenant ID in claims
-3. **Lambda authorizer**: Validates JWT (structure, expiration, signature, audience), extracts tenant ID from claims, looks up the tenant's API key from DynamoDB, returns it in `usageIdentifierKey`
-4. **API Gateway**: Uses the returned API key to enforce the associated usage plan's rate limit. Returns 429 if exceeded
-5. **Caching layers**: (a) Lambda authorizer caches IdP token validation keys in memory (JWKS), avoiding per-request calls to IdP. (b) API Gateway authorizer caching (default 300s, max 3600s) avoids re-invoking the authorizer for the same token
-6. **Key benefit**: Tenants never see or manage API keys; they only use their JWT. API key management is fully transparent and centralized
-- Set `ApiKeySourceType: AUTHORIZER` on the REST API so API Gateway uses the key from the authorizer response rather than the `x-api-key` header
-- Requires REST API (HTTP API does not support usage plans or API keys)
-
-**HttpOnly cookie authentication**:
-- Lambda authorizer extracts JWT from HttpOnly cookie, validates with `aws-jwt-verify` library. Prevents XSS token theft
-- Identity source: `$request.header.cookie` (HTTP API) or `method.request.header.Cookie` (REST API REQUEST type)
-- Create JWT verifier outside handler for JWKS caching across warm starts
-
-**mTLS client identity propagation**:
-- REST API: Lambda authorizer extracts client certificate from `event.requestContext.identity.clientCert.clientCertPem`
-- HTTP API (payload format 2.0): Client certificate is at `event.requestContext.authentication.clientCert.clientCertPem`
-- Return extracted subject/fields in `context` for injection into backend request headers via `RequestParameters`
-
 ## JWT Authorizers (HTTP API Only)
 
 - **Validates**: `iss`, `aud`/`client_id`, `exp`, `nbf` (must be before current time), `iat` (must be before current time), `scope`/`scp` (against route-configured scopes). Uses `kid` for JWKS key lookup. Request is denied if any validation fails
@@ -131,10 +108,4 @@ Evaluation depends on which auth type is combined with the resource policy:
 - Key source: `HEADER` (default, `x-api-key`) or `AUTHORIZER` (Lambda returns key in `usageIdentifierKey`)
 - REST API only. HTTP API does not support API keys or usage plans
 
-## Access Control Combinations
 
-Layer multiple mechanisms for defense in depth:
-- Resource policy (network/account restriction) + IAM auth (identity verification)
-- mTLS (client certificate) + Lambda authorizer (business logic authorization)
-- WAF (web exploit protection) + Cognito (user authentication) + resource policy (IP restriction)
-- VPC endpoint policy (network isolation) + resource policy (API-level control)

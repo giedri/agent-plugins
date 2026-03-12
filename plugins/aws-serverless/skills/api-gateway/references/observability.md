@@ -209,17 +209,15 @@ Each phase exposes `$context.{phase}.status`, `$context.{phase}.latency`, and `$
 **Note on authorizer phase**: The authorizer has both `$context.authorizer.latency` (total authorizer latency) and `$context.authorizer.integrationLatency` (time spent in the authorizer Lambda/Cognito call). The difference is API Gateway overhead for the authorizer phase.
 
 **Diagnosing 403 errors by phase:**
-- `waf-status: 403` = WAF blocked the request
-- `authenticate-status: 403` = Invalid credentials (e.g., malformed SigV4)
-- `authorizer-status: 403` = Lambda authorizer returned Deny policy
-- `authorize-status: 403` with `authorize-error: "The client is not authorized"` = Valid credentials but insufficient permissions (resource policy or IAM policy denied)
+- `$context.waf.status: 403` = WAF blocked the request
+- `$context.authenticate.status: 403` = Invalid credentials (e.g., malformed SigV4)
+- `$context.authorizer.status: 403` = Lambda authorizer returned Deny policy
+- `$context.authorize.status: 403` with `$context.authorize.error: "The client is not authorized"` = Valid credentials but insufficient permissions (resource policy or IAM policy denied)
 
 **Key distinction (Lambda proxy integration):**
-- `integration-integrationStatus`: Status code from the Lambda **service** (usually 200 even when the function throws an error)
-- `integration-status`: Status code from your Lambda **function code** (the `statusCode` field in your function's response)
+- `$context.integration.integrationStatus`: Status code from the Lambda **service** (usually 200 even when the function throws an error)
+- `$context.integration.status`: Status code from your Lambda **function code** (the `statusCode` field in your function's response)
 
-**Latency breakdown:**
-- Total latency minus sum of phase latencies = API Gateway overhead
 
 ### Additional Access Log Variables
 - `$context.identity.apiKey`: Track which API keys are making requests

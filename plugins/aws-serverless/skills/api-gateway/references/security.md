@@ -208,27 +208,6 @@ Pattern for preventing XSS token theft:
 
 Apply security at every component, not just the data plane (who can call APIs). Also secure the **control plane** (who can modify/deploy APIs).
 
-### Data Plane Security Layers (in order)
-1. **WAF**: Filtering rules for XSS, SQL injection. Attaches directly to REST API stage (HTTP API requires CloudFront for WAF)
-2. **Resource Policies**: Allow/block VPCs, accounts, IP ranges
-3. **Private Endpoints**: APIs accessible only from VPCs
-4. **mTLS**: Client certificate auth between client and API Gateway (custom domain truststore)
-   - Separate feature: **API Gateway client certificates** (REST API only), where API Gateway presents a certificate to the backend for backend authentication. This is one-way (not mutual) and distinct from the mTLS truststore feature
-5. **Private Integrations**: Backend resources in VPC, not publicly accessible
-6. **Throttling/Usage Plans**: Per-client-per-method AND per-method rate limiting
-
-### Control Plane Security
-- **IAM policies**: Restrict who can create, modify, deploy APIs
-- **Permission boundaries**: Set maximum permissions for API Gateway admins
-- **SCPs**: Organization-wide guardrails (e.g., prevent public API deployment in dev accounts, require authorizers, enforce mTLS on custom domains, ensure logging is enabled)
-
-### Additional Layers
-- **DDoS protection**: AWS Shield
-- **CloudFront**: Edge caching, custom behaviors. Now supports mTLS at edge locations
-- **Lambda**: Pre-compiled SQL, input sanitization
-- **Backend storage**: Encryption at rest, least-privilege access
-- **Centralized identity**: Amazon Cognito or external IdP
-
 ## Cache Encryption (REST API)
 
 - API Gateway cache is **not encrypted at rest by default**; encryption must be explicitly enabled when provisioning the cache

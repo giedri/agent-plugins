@@ -27,7 +27,7 @@
 - **Throttle**: Rate (requests/second) + burst
 - **RPS limits are per API key**, not split across keys. If a usage plan allows 100 rps and has 10 keys, each key gets 100 rps (not 10 rps each)
 - Combine with API keys to track and limit per-consumer usage
-- Max 300 usage plans per region, 10,000 API keys per region (both adjustable)
+- Max 300 usage plans per region (adjustable), 10,000 API keys per region
 - **API key source**: `HEADER` (default, `x-api-key`) or `AUTHORIZER` (Lambda returns key in `usageIdentifierKey`)
 - **Do not associate one API key with multiple usage plans** that cover the same API stage; API Gateway picks one plan non-deterministically. One key per plan per stage is safe; a usage plan can have many keys
 
@@ -36,10 +36,6 @@
 - Each request consumes one token. If the bucket is empty, the request is throttled (429)
 - The burst capacity (5,000) is the maximum number of requests that can be served in a single instant. The steady-state rate (10,000 rps) is the maximum sustained throughput. Burst is lower than steady-state because the bucket refills faster (10,000/s) than it can be drained in one instant (5,000). Over any one-second window you can sustain 10,000 rps, but an instantaneous spike cannot exceed 5,000 concurrent requests
 - Throttled requests receive 429 Too Many Requests
-
-### Client-Side Best Practice
-- Implement retries with **jittered exponential backoff**
-- Do not retry at a fixed interval, as this causes thundering herd
 
 ## Caching (REST API Only)
 
@@ -57,6 +53,7 @@
 - Default: resource path
 - Add headers, query strings, and path parameters as additional cache keys
 - More cache keys = more granular caching but lower hit rate
+- Include client identity into cache keys to avoid data leaks across clients
 
 ### Cache Invalidation
 - Client sends `Cache-Control: max-age=0` header
@@ -114,27 +111,6 @@ For maximum performance, layer caches:
 - Each cell has its own API Gateway, Lambda, and database
 - Route traffic to cells via custom domain and routing rules
 
-## Latency Optimization
-
-### Diagnostic Chain
-Client latency > API Gateway `Latency` metric > `IntegrationLatency` metric > Lambda `Duration` metric
-
-### Key Comparisons
-- `Latency` vs `IntegrationLatency`: Difference is API Gateway overhead
-- `IntegrationLatency` vs Lambda `Duration`: Difference includes network time and Lambda service overhead
-
-### Lambda Cold Start Mitigation
-- Increase Lambda memory (also increases CPU)
-- Use provisioned concurrency for critical paths
-- Check for `INIT` or initialization time in Lambda logs
-- Move heavy imports and SDK client initialization outside the handler (module level) so they execute once during cold start and are reused across warm invocations
-
-### Reducing API Gateway Overhead
-- Disable execution logging for production (or use ERROR level)
-- Minimize VTL mapping template complexity
-- Use Lambda proxy integration (no transformation overhead)
-- Consider HTTP API for lower latency (simpler processing pipeline)
-
 ## Payload Compression
 
 ### API Gateway Native Compression
@@ -153,8 +129,6 @@ Client latency > API Gateway `Latency` metric > `IntegrationLatency` metric > La
 
 ### Compression Trade-offs
 - Compression is CPU-intensive in Lambda, adding ~124 ms for 1 MB JSON on 1 GB ARM architecture
-- **Cost trade-off**: For 10M invocations of 1 MB payloads, compression adds ~$16 in Lambda compute cost but saves ~$300 in NAT Gateway data transfer and ~$70 in VPC Endpoint data transfer costs
-- NAT Gateway and VPC Endpoint are billed per GB of data processed, so compression directly reduces these costs
 - Always benchmark with payloads representative of your workload before enabling
 
 ## Handling Large Payloads

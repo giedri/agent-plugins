@@ -11,7 +11,7 @@ Direct AWS service integrations without Lambda. These templates connect API Gate
   - [Option B: Inline CloudFormation methods](#option-b-inline-cloudformation-methods-simpler-for-small-apis)
 - [Kinesis Data Streams](#direct-aws-service-integration-kinesis-data-streams)
 - [Step Functions (REST API)](#direct-aws-service-integration-step-functions)
-- [Step Functions (WebSocket API)](#websocket-api--step-functions)
+- [Step Functions (WebSocket API)](#websocket-api-express-workflow-sync-and-standard-workflow-async-with-callback)
 
 ---
 
@@ -146,6 +146,7 @@ Full CRUD pattern based on [aws-samples/serverless-patterns](https://github.com/
 ### Option A: OpenAPI-based definition (recommended for complex APIs)
 
 SAM template references an external OpenAPI file:
+
 ```yaml
 MyApi:
   Type: AWS::Serverless::Api
@@ -202,6 +203,7 @@ APIGatewayDynamoDBRole:
 ```
 
 OpenAPI file (`restapi/api.yaml`), key methods shown:
+
 ```yaml
 openapi: "3.0.1"
 info:
@@ -398,6 +400,7 @@ x-amazon-apigateway-request-validators:
 ```
 
 ### Option B: Inline CloudFormation methods (simpler for small APIs)
+
 ```yaml
 ## Single-method example: use Option A for full CRUD APIs
 DynamoDbGetIntegration:
@@ -558,6 +561,7 @@ LambdaConsumer:
 REST API pattern based on [aws-samples/serverless-patterns/apigw-rest-stepfunction](https://github.com/aws-samples/serverless-patterns/tree/main/apigw-rest-stepfunction). WebSocket pattern based on [aws-samples/serverless-samples/apigw-ws-integrations](https://github.com/aws-samples/serverless-samples/tree/main/apigw-ws-integrations).
 
 ### REST API: Standard workflow (async, fire-and-forget with polling)
+
 ```yaml
 WaitableStateMachine:
   Type: AWS::Serverless::StateMachine
@@ -628,6 +632,7 @@ StartExecutionMethod:
 ```
 
 ### WebSocket API: Express workflow (sync) and Standard workflow (async with callback)
+
 ```yaml
 ## Express workflow: synchronous, returns result to WebSocket client
 SyncSFn:

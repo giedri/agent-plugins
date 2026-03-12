@@ -13,6 +13,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 ## Requirements Categories
 
 ### 1. API Purpose and Overview
+
 - What problem does the API solve?
 - Who are the primary consumers (browsers, mobile apps, other services, IoT devices, AI agents)?
 - Expected usage volume (requests per day/hour/second)?
@@ -26,6 +27,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Cost sensitivity or budget constraints? (HTTP API is significantly cheaper than REST API but has fewer features: no caching, no WAF, no usage plans, no request validation, no VTL, hard 30s timeout. Choose based on feature needs vs cost)
 
 ### 2. Endpoints and Operations
+
 - Resources to expose (users, orders, products, etc.)?
 - Operations per resource (GET, POST, PUT, DELETE, PATCH)?
 - URL paths and naming conventions?
@@ -36,6 +38,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Deprecation and sunsetting plan for old versions?
 
 ### 3. Request/Response Specifications
+
 - Data sent in request bodies?
 - Required or optional headers?
 - Query parameters needed?
@@ -45,6 +48,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Need for multi-value query parameters or headers?
 
 ### 4. Data Models and Schemas
+
 - Domain entities and their attributes?
 - Data types for each field?
 - Required vs optional fields?
@@ -53,6 +57,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Need for request body validation? (REST API only supports JSON Schema draft 4)
 
 ### 5. Authentication and Authorization
+
 - Authentication method?
   - **IAM (SigV4)**: Best for AWS-to-AWS service calls
   - **Lambda authorizer**: Custom logic, third-party IdPs, bearer tokens
@@ -66,6 +71,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Cross-account access requirements?
 
 ### 6. Integration Requirements
+
 - Backend services (Lambda, DynamoDB, RDS, ECS/EKS, on-premises)?
 - Direct AWS service integrations without Lambda? REST API supports any AWS service via VTL mapping templates (SQS, EventBridge, Step Functions, S3, DynamoDB, etc.). HTTP API supports a subset via [first-class integrations](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-aws-services.html) with parameter mapping (SQS, EventBridge, Step Functions, Kinesis, AppConfig)
 - VPC integrations for private resources? (VPC Link required; REST uses NLB, HTTP uses ALB/NLB/Cloud Map)
@@ -79,6 +85,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Synchronous or asynchronous processing? (REST API default 29s timeout, increasable up to 300s for Regional/Private via quota request. HTTP API has hard 30s limit. For longer operations or better UX, consider async patterns: SQS, EventBridge, Step Functions)
 
 ### 7. WebSocket Requirements (if WebSocket API selected)
+
 - Route selection expression? (e.g., `$request.body.action` for JSON messages)
 - Custom routes beyond `$connect`/`$disconnect`/`$default`?
 - Session management strategy? (Store connectionId with user ID in DynamoDB on `$connect`; GSI on user ID for targeted messaging)
@@ -91,6 +98,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Multi-region WebSocket? (ConnectionId is region-specific; cross-region message propagation via EventBridge or DynamoDB Streams)
 
 ### 8. Performance and Scalability
+
 - Expected peak request rates (per second)? (Account default: 10,000 rps / 5,000 burst across all APIs in a region, adjustable via Service Quotas)
 - Latency requirements (target response time)?
 - Need for response caching? (REST API only, TTL 0-3600s, 0.5-237 GB)
@@ -103,12 +111,14 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Per-tenant or per-consumer throttling tiers? (Requires REST API usage plans; HTTP API has no per-consumer throttling natively)
 
 ### 9. Error Handling
+
 - Custom error response format?
 - CORS headers needed on error responses?
 - Specific gateway response customizations?
 - How to communicate validation errors?
 
 ### 10. Observability
+
 - Execution logging level (ERROR recommended for production, INFO for debugging)? (REST/WebSocket only; HTTP API does not support execution logging)
 - Custom access log format requirements? (Use enhanced observability variables for phase-level troubleshooting)
 - AWS X-Ray tracing needed? (REST API only)
@@ -117,6 +127,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - API analytics pipeline needed? (Firehose → S3 → Athena → QuickSight for deep analytics beyond CloudWatch)
 
 ### 11. Security Requirements
+
 - AWS WAF needed? (REST API direct; HTTP API via CloudFront + WAF)
 - Which WAF managed rules? (Core Rule Set, SQL injection, Known Bad Inputs, IP Reputation at minimum)
 - CORS configuration (which origins, methods, headers)? Don't forget CORS headers on gateway error responses (DEFAULT_4XX, DEFAULT_5XX)
@@ -129,6 +140,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - DDoS protection considerations? (WAF rate-based rules, Shield)
 
 ### 12. Deployment, Environment, and Testing
+
 - How many environments (dev, staging, production)?
 - Separate stacks per environment (full isolation) or stages within one API?
 - Canary deployment needed? (REST API only; tests API configuration, not Lambda code)
@@ -141,6 +153,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Load/performance testing plans? (Identify bottlenecks before production; test full stack, not just API Gateway)
 
 ### 13. Custom Domain and Routing
+
 - Custom domain name needed?
 - Endpoint type? Edge-optimized (default for global clients; optimizes TCP connections but does not cache at edge), Regional (same-region clients, or pair with own CloudFront distribution when edge caching, edge compute, granular WAF control, or geo-based routing is needed), Private (VPC-only access, REST API only)
 - Multiple APIs behind one domain? REST API: use routing rules (preferred, supports header-based routing) or base path mappings. HTTP API/WebSocket: use base path mappings (routing rules are REST API only)
@@ -150,6 +163,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Cross-account topology? (Central API account with shared domain, or per-team subdomains)
 
 ### 14. Governance and Compliance
+
 - Organization-wide API standards to enforce? (SCPs for preventative, CloudFormation Hooks for proactive, AWS Config for detective controls)
 - Required tags on API resources?
 - Control plane access restrictions? (Who can create, modify, deploy APIs)
@@ -163,6 +177,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 # API Requirements Summary
 
 ## Overview
+
 - API Name: [name]
 - API Type: [REST API / HTTP API / WebSocket API]
 - Endpoint Type: [Edge-optimized / Regional / Private]
@@ -174,29 +189,35 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Cost Sensitivity: [budget constraints, API type preference]
 
 ## Endpoints
+
 | Resource | Method | Path | Description | Auth |
-|----------|--------|------|-------------|------|
-| ... | ... | ... | ... | ... |
+| -------- | ------ | ---- | ----------- | ---- |
+| ...      | ...    | ...  | ...         | ...  |
 
 ## API Versioning
+
 - Strategy: [URL path / header-based / query parameter]
 - Concurrent Versions: [number]
 - Deprecation Policy: [timeline, communication plan]
 
 ## Authentication and Authorization
+
 - Method: [auth method]
 - Authorization Model: [model]
 - Roles/Permissions: [details]
 
 ## Data Models
+
 [Entity definitions with attributes and types]
 
 ## Binary Data and Large Payloads
+
 - Binary Media Types: [list or none]
 - File Upload/Download: [direct API / presigned S3 URLs]
 - Max Expected Payload Size: [size]
 
 ## WebSocket Requirements (if applicable)
+
 - Route Selection Expression: [field]
 - Custom Routes: [list]
 - Session Management: [connection tracking strategy]
@@ -205,6 +226,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Client Resilience: [reconnect, heartbeat strategy]
 
 ## Performance Requirements
+
 - Target Latency: [ms]
 - Rate Limits: [requests/second]
 - Burst Limit: [requests]
@@ -212,6 +234,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Per-Tenant Throttling: [yes/no, tier structure]
 
 ## Security Requirements
+
 - WAF: [yes/no]
 - CORS: [origins, methods, headers]
 - TLS: [minimum version]
@@ -219,6 +242,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Compliance: [standards]
 
 ## Observability
+
 - Execution Logging: [level]
 - Access Logging: [format]
 - X-Ray Tracing: [yes/no]
@@ -226,6 +250,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Alarms: [list]
 
 ## Deployment and Testing
+
 - Environments: [list]
 - Strategy: [canary/blue-green/direct]
 - IaC Tool: [SAM/CDK/CloudFormation/Terraform]
@@ -234,6 +259,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Integration Testing: [approach]
 
 ## Custom Domain and Routing
+
 - Domain: [domain name]
 - Endpoint Type: [edge-optimized/regional/private]
 - Routing: [routing rules (recommended) / base path mappings]
@@ -242,6 +268,7 @@ When helping users define requirements for APIs built on Amazon API Gateway, gui
 - Data Consistency: [conflict resolution strategy]
 
 ## Governance
+
 - Tag Requirements: [required tags]
 - Audit: [CloudTrail/Config requirements]
 - Standards Enforcement: [SCPs/Hooks/Config rules]

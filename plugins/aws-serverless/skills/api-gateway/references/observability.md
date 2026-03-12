@@ -26,6 +26,7 @@
 ## Logging
 
 ### Execution Logging (REST API and WebSocket)
+
 - Full request/response logs including mapping template output, integration request/response, authorizer output
 - Levels: OFF, ERROR, INFO
 - **Log events truncated at 1,024 bytes**; use access logs for complete data
@@ -34,12 +35,14 @@
 - **Cost warning**: INFO-level execution logging generates many log events per request (10-60+ depending on API complexity: authorizers, mapping templates, and integration details all add entries). At scale, CloudWatch Logs costs can exceed Lambda + API Gateway costs combined. Use ERROR level in production and enable INFO only for targeted debugging
 
 ### What API Gateway Does NOT Log
+
 - 413 Request Entity Too Large
 - Excessive 429 throttling responses
 - 400 errors to unmapped custom domains
 - Internal 500 errors from API Gateway itself
 
 ### Access Logging
+
 - Customizable log format using `$context` variables
 - Formats: CLF, JSON, XML, CSV
 - Access log template max: 3 KB
@@ -57,6 +60,7 @@ CloudWatch Logs default to **Never Expire**, which causes unbounded storage cost
 - **Compliance/audit logs**: 1-3 years per organizational policy
 
 Define log groups explicitly in SAM/CloudFormation to control retention:
+
 ```yaml
 ApiAccessLogGroup:
   Type: AWS::Logs::LogGroup
@@ -118,6 +122,7 @@ Use this JSON format for maximum troubleshooting capability with enhanced observ
 ```
 
 Key variables explained:
+
 - `requestTimeEpoch`: Epoch-millisecond timestamp. Use for programmatic analysis and Athena queries
 - `extendedRequestId`: Maps to `x-amz-apigw-id` header. Needed for AWS Support escalations
 - `accountId`: AWS account of the caller. Critical for IAM-authenticated and cross-account APIs
@@ -129,6 +134,7 @@ Key variables explained:
 ### HTTP API Access Log Format
 
 HTTP API uses different `$context` variables. Key differences from REST API:
+
 - Uses `$context.routeKey` instead of `$context.resourcePath`
 - No WAF, authenticate, or authorize phase variables (HTTP API does not have these phases)
 - Authorizer variables are available (HTTP API supports JWT and Lambda authorizers)
@@ -195,6 +201,7 @@ WebSocket APIs use connection-oriented variables instead of HTTP method/path:
 ```
 
 Key WebSocket-specific variables:
+
 - `connectionId`: Unique ID for the persistent WebSocket connection
 - `eventType`: `CONNECT`, `MESSAGE`, or `DISCONNECT`
 - `routeKey`: The matched route (`$connect`, `$disconnect`, `$default`, or custom route keys)
@@ -209,17 +216,19 @@ Each phase exposes `$context.{phase}.status`, `$context.{phase}.latency`, and `$
 **Note on authorizer phase**: The authorizer has both `$context.authorizer.latency` (total authorizer latency) and `$context.authorizer.integrationLatency` (time spent in the authorizer Lambda/Cognito call). The difference is API Gateway overhead for the authorizer phase.
 
 **Diagnosing 403 errors by phase:**
+
 - `$context.waf.status: 403` = WAF blocked the request
 - `$context.authenticate.status: 403` = Invalid credentials (e.g., malformed SigV4)
 - `$context.authorizer.status: 403` = Lambda authorizer returned Deny policy
 - `$context.authorize.status: 403` with `$context.authorize.error: "The client is not authorized"` = Valid credentials but insufficient permissions (resource policy or IAM policy denied)
 
 **Key distinction (Lambda proxy integration):**
+
 - `$context.integration.integrationStatus`: Status code from the Lambda **service** (usually 200 even when the function throws an error)
 - `$context.integration.status`: Status code from your Lambda **function code** (the `statusCode` field in your function's response)
 
-
 ### Additional Access Log Variables
+
 - `$context.identity.apiKey`: Track which API keys are making requests
 - `$context.identity.accountId`: Identify which AWS account is calling (IAM auth, cross-account)
 - `$context.domainName`: Differentiate traffic across custom domains
@@ -232,17 +241,21 @@ Each phase exposes `$context.{phase}.status`, `$context.{phase}.latency`, and `$
 ## Setting Up Logging
 
 ### Prerequisites for REST API and WebSocket
+
 1. Create IAM role with `AmazonAPIGatewayPushToCloudWatchLogs` managed policy
 2. Set CloudWatch log role ARN in API Gateway Settings (region-level, one-time configuration)
 3. Enable logging per stage
 
 ### Prerequisites for HTTP API
+
 HTTP APIs do **not** use the account-level CloudWatch log role. Instead:
+
 1. Create the CloudWatch Logs log group
 2. Specify the log group ARN when configuring the stage's access logging
 3. API Gateway uses a service-linked role to write logs. Ensure the log group's resource-based policy allows `logs:CreateLogStream` and `logs:PutLogEvents` from the API Gateway service principal
 
 ### Missing Logs Troubleshooting
+
 - IAM permissions incorrect (most common for REST/WebSocket)
 - Log group resource policy missing (most common for HTTP API)
 - Logging not enabled at stage level
@@ -251,16 +264,16 @@ HTTP APIs do **not** use the account-level CloudWatch log role. Instead:
 
 ## CloudWatch Metrics
 
-| Metric | Description |
-|--------|-------------|
-| `Count` | Total API requests |
-| `Latency` | Time from API Gateway receiving the request to returning the response (does not include client-to-gateway network time) |
-| `IntegrationLatency` | Time spent in backend integration |
-| `4XXError` / `4xx` | Client error count. REST API: `4XXError`; HTTP API: `4xx` |
-| `5XXError` / `5xx` | Server error count. REST API: `5XXError`; HTTP API: `5xx` |
-| `CacheHitCount` | Cache hits (REST only) |
-| `CacheMissCount` | Cache misses (REST only) |
-| `DataProcessed` | Amount of data processed in bytes (HTTP API only) |
+| Metric               | Description                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `Count`              | Total API requests                                                                                                      |
+| `Latency`            | Time from API Gateway receiving the request to returning the response (does not include client-to-gateway network time) |
+| `IntegrationLatency` | Time spent in backend integration                                                                                       |
+| `4XXError` / `4xx`   | Client error count. REST API: `4XXError`; HTTP API: `4xx`                                                               |
+| `5XXError` / `5xx`   | Server error count. REST API: `5XXError`; HTTP API: `5xx`                                                               |
+| `CacheHitCount`      | Cache hits (REST only)                                                                                                  |
+| `CacheMissCount`     | Cache misses (REST only)                                                                                                |
+| `DataProcessed`      | Amount of data processed in bytes (HTTP API only)                                                                       |
 
 - Default: metrics per API stage
 - Detailed metrics: per method (enable on stage)
@@ -273,14 +286,17 @@ HTTP APIs do **not** use the account-level CloudWatch log role. Instead:
 Always configure these alarms for production APIs:
 
 **Error rate alarms:**
+
 - `5XXError` rate > 1% of total requests: server errors indicate backend or configuration problems
 - `4XXError` rate anomaly detection: spikes indicate breaking changes, auth failures, or abuse
 - `IntegrationLatency` p99 > SLA threshold: detect backend degradation before timeouts
 
 **Throttling alarm:**
+
 - `Count` approaching account throttle limit (10,000 rps default). Alert at 80% utilization to request limit increases proactively
 
 **Cache alarms (REST API):**
+
 - Cache hit ratio (`CacheHitCount / (CacheHitCount + CacheMissCount)`) drop below threshold: indicates cache invalidation issues or misconfiguration
 
 ### Alarm Examples (CloudFormation)
@@ -328,6 +344,7 @@ ApiLatencyAlarm:
 ### Composite Alarms
 
 Combine signals to reduce noise:
+
 - High 5xx AND high latency = likely backend failure (page on-call)
 - High 4xx only = likely client-side issue (lower priority)
 
@@ -336,23 +353,29 @@ Combine signals to reduce noise:
 Create custom CloudWatch metrics from access log patterns. Metric filters run on the log group and extract numeric values or count pattern matches.
 
 ### Error Count by Response Type
+
 ```
 { $.["error-responseType"] = "THROTTLED" }
 ```
+
 Publishes a metric counting throttled requests. Useful since excessive 429s may not be logged by API Gateway itself.
 
 ### Slow Requests
+
 ```
 { $.responseLatency > 5000 }
 ```
+
 Counts requests exceeding 5 seconds. Can alarm on this custom metric for tighter latency SLOs than the built-in p99.
 
 ### Requests by API Key
 
 Add `"apiKey": "$context.identity.apiKey"` to your log format first, then use:
+
 ```
 { $.apiKey != "-" }
 ```
+
 Use with metric dimensions to track per-consumer request volumes.
 
 ## X-Ray Tracing
@@ -385,6 +408,7 @@ For end-to-end distributed tracing, enable X-Ray in both API Gateway and downstr
 ## CloudWatch Logs Insights Queries
 
 ### Find 5xx Errors
+
 ```
 fields @timestamp, status, requestId, ip, resourcePath, integrationLatency
 | filter status >= 500
@@ -393,6 +417,7 @@ fields @timestamp, status, requestId, ip, resourcePath, integrationLatency
 ```
 
 ### Latency Analysis
+
 ```
 fields @timestamp, responseLatency, integrationLatency, resourcePath
 | stats avg(responseLatency) as avgLatency, max(responseLatency) as maxLatency,
@@ -401,6 +426,7 @@ fields @timestamp, responseLatency, integrationLatency, resourcePath
 ```
 
 ### Top Talkers
+
 ```
 fields ip
 | stats count(*) as requestCount by ip
@@ -409,6 +435,7 @@ fields ip
 ```
 
 ### Per-Domain Analytics
+
 ```
 filter domainName like /(?i)(api.example.com)/
 | stats count(*) as requests, avg(responseLatency) as avgLatency by resourcePath
@@ -416,6 +443,7 @@ filter domainName like /(?i)(api.example.com)/
 ```
 
 ### Diagnose 403 Errors by Phase
+
 ```
 fields @timestamp, requestId, ip, resourcePath
 | filter status = 403
@@ -428,6 +456,7 @@ fields @timestamp, requestId, ip, resourcePath
 ```
 
 ### Find Specific Gateway Response Types
+
 ```
 fields @timestamp, requestId, `error-responseType`, `error-message`, status
 | filter ispresent(`error-responseType`)
@@ -459,6 +488,7 @@ fields @timestamp, requestId, `error-responseType`, `error-message`, status
 ## API Analytics Pipeline
 
 For deep analytics beyond CloudWatch dashboards:
+
 1. Stream access logs via Amazon Data Firehose
 2. Enrich with Lambda transformation (add business context, geo-IP lookup)
 3. Store in S3 (partitioned by date/API/stage)

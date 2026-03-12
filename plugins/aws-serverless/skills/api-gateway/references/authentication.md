@@ -37,6 +37,7 @@ Is the consumer an AWS service or resource?
 ## Lambda Authorizers
 
 ### REST API
+
 - **TOKEN type**: Receives a single header value (typically `Authorization`) as input. Returns IAM policy document. If the identity source header is missing, API Gateway returns 401 immediately **without invoking the Lambda**; the authorizer function never gets the chance to handle missing tokens
 - **REQUEST type**: Receives headers, query strings, stage variables, and context variables as input. Returns IAM policy document. When caching is enabled and identity sources are specified, a request missing any identity source returns 401 without invoking the Lambda
 - Both types must return `principalId` (string identifying the caller) alongside the policy document. Missing `principalId` causes 500 Internal Server Error
@@ -44,6 +45,7 @@ Is the consumer an AWS service or resource?
 - **Caching**: TTL default 300s, max 3600s. Cache key is the token value (TOKEN type) or identity sources (REQUEST type). When caching is enabled, the IAM policy returned by the first request is reused for subsequent requests with the same cache key. If that policy only covers specific resources (e.g., the path of the initial request), subsequent requests to other paths will be denied by the cached partial policy, causing hard-to-troubleshoot failures where clients intermittently cannot access parts of the API. Always generate IAM policies that cover the entire API when caching is enabled
 
 ### HTTP API
+
 - **Simple response format**: Returns `{isAuthorized: true/false, context: {...}}`, much simpler than IAM policy
 - **IAM policy format**: Also supported for more complex authorization. When using IAM policy format with caching, the same full-API policy guidance from REST API applies; see REST API caching note above
 - **Identity sources**: `$request.header.X`, `$request.querystring.X`, `$context.X`, `$stageVariables.X`
@@ -74,13 +76,16 @@ Is the consumer an AWS service or resource?
 ## Resource Policies (REST API Only)
 
 Four key use cases:
+
 1. **Cross-account access**: Allow specific AWS accounts by specifying the account principal in the `Principal` field
 2. **IP filtering**: Allow/deny CIDR ranges via `aws:SourceIp` (public) or `aws:VpcSourceIp` (private/VPC)
 3. **VPC restriction**: Restrict to specific VPCs via `aws:SourceVpc`
 4. **VPC endpoint restriction**: Restrict to specific VPC endpoints via `aws:SourceVpce`
 
 ### Policy Evaluation
+
 Evaluation depends on which auth type is combined with the resource policy:
+
 - **Same account + IAM or Lambda authorizer**: OR logic. If the auth mechanism allows, access is granted even if the resource policy has no matching statement (silent). An explicit Deny in the resource policy still wins
 - **Same account + Cognito**: AND logic. Both the Cognito authorizer and the resource policy must allow
 - **Resource policy alone** (no other auth): Must explicitly allow, otherwise request is denied
@@ -107,5 +112,3 @@ Evaluation depends on which auth type is combined with the resource policy:
 - Max 10,000 API keys per region (adjustable). Imported key values must be 20-128 characters
 - Key source: `HEADER` (default, `x-api-key`) or `AUTHORIZER` (Lambda returns key in `usageIdentifierKey`)
 - REST API only. HTTP API does not support API keys or usage plans
-
-

@@ -27,6 +27,7 @@ Expert guidance for building, managing, governing, and operating APIs with Amazo
 ## How to Use This Skill
 
 When answering API Gateway questions:
+
 1. Read the relevant reference file(s) before responding, do not rely solely on this summary
 2. For tasks spanning multiple concerns (e.g., "private API with mTLS and custom domain"), read all relevant references
 3. When the user needs IaC templates, consult `references/sam-cloudformation.md` or `references/sam-service-integrations.md` and provide complete, working SAM/CloudFormation YAML
@@ -40,34 +41,34 @@ Choose the right API type first. This decision affects every downstream choice.
 
 **HTTP API** is the lightweight, low-cost proxy optimized for simpler API workloads. It offers ~70% lower cost and lower latency but trades away the API management features. Choose HTTP API when you need a fast, lightweight proxy to Lambda or HTTP backends and don't require the enterprise controls above.
 
-| Factor | REST API (v1) | HTTP API (v2) | WebSocket API |
-|--------|--------------|---------------|---------------|
-| **Positioning** | **Full API management** | **Low-cost proxy** | **Real-time bidirectional** |
-| Cost | Higher | ~70% cheaper | Per-message pricing |
-| Latency | Higher | Lower | Persistent connection |
-| Max timeout | 50ms-29s (up to 300s Regional/Private) | 30s hard limit | 29s |
-| Payload | 10 MB | 10 MB | 128 KB message / 32 KB frame |
-| **API Management** | | | |
-| Usage plans/API keys | Yes | No | No |
-| Request validation | Yes (JSON Schema draft 4) | No | No |
-| Caching | Yes (0.5-237 GB) | No | No |
-| Custom gateway responses | Yes | No | No |
-| VTL mapping templates | Yes | No (parameter mapping only) | Yes |
-| **Security & Governance** | | | |
-| WAF | Yes | No (use CloudFront + WAF) | No |
-| Resource policies | Yes | No | No |
-| Private endpoints | Yes | No | No |
-| mTLS | Yes (Regional custom domain only) | Yes (Regional custom domain only) | Via CloudFront viewer mTLS |
-| **Auth** | | | |
-| Lambda authorizer | Yes (TOKEN + REQUEST) | Yes (REQUEST only, simple + IAM policy format) | Yes (REQUEST on $connect only) |
-| JWT authorizer | No (use Cognito authorizer) | Yes (native) | No |
-| Cognito authorizer | Yes (native) | Use JWT authorizer | No |
-| **Operations** | | | |
-| Canary deployments | Yes | No | No |
-| Response streaming | Yes | No | No |
-| X-Ray tracing | Yes | No | No |
-| Execution logging | Yes | No | Yes |
-| Custom domain sharing | Not with WebSocket | Not with WebSocket | Not with REST/HTTP |
+| Factor                    | REST API (v1)                          | HTTP API (v2)                                  | WebSocket API                  |
+| ------------------------- | -------------------------------------- | ---------------------------------------------- | ------------------------------ |
+| **Positioning**           | **Full API management**                | **Low-cost proxy**                             | **Real-time bidirectional**    |
+| Cost                      | Higher                                 | ~70% cheaper                                   | Per-message pricing            |
+| Latency                   | Higher                                 | Lower                                          | Persistent connection          |
+| Max timeout               | 50ms-29s (up to 300s Regional/Private) | 30s hard limit                                 | 29s                            |
+| Payload                   | 10 MB                                  | 10 MB                                          | 128 KB message / 32 KB frame   |
+| **API Management**        |                                        |                                                |                                |
+| Usage plans/API keys      | Yes                                    | No                                             | No                             |
+| Request validation        | Yes (JSON Schema draft 4)              | No                                             | No                             |
+| Caching                   | Yes (0.5-237 GB)                       | No                                             | No                             |
+| Custom gateway responses  | Yes                                    | No                                             | No                             |
+| VTL mapping templates     | Yes                                    | No (parameter mapping only)                    | Yes                            |
+| **Security & Governance** |                                        |                                                |                                |
+| WAF                       | Yes                                    | No (use CloudFront + WAF)                      | No                             |
+| Resource policies         | Yes                                    | No                                             | No                             |
+| Private endpoints         | Yes                                    | No                                             | No                             |
+| mTLS                      | Yes (Regional custom domain only)      | Yes (Regional custom domain only)              | Via CloudFront viewer mTLS     |
+| **Auth**                  |                                        |                                                |                                |
+| Lambda authorizer         | Yes (TOKEN + REQUEST)                  | Yes (REQUEST only, simple + IAM policy format) | Yes (REQUEST on $connect only) |
+| JWT authorizer            | No (use Cognito authorizer)            | Yes (native)                                   | No                             |
+| Cognito authorizer        | Yes (native)                           | Use JWT authorizer                             | No                             |
+| **Operations**            |                                        |                                                |                                |
+| Canary deployments        | Yes                                    | No                                             | No                             |
+| Response streaming        | Yes                                    | No                                             | No                             |
+| X-Ray tracing             | Yes                                    | No                                             | No                             |
+| Execution logging         | Yes                                    | No                                             | Yes                            |
+| Custom domain sharing     | Not with WebSocket                     | Not with WebSocket                             | Not with REST/HTTP             |
 
 **Use REST API when**: you are building APIs for external consumers, partners, or multi-tenant platforms; need to enforce per-consumer rate limits and quotas; require request validation, caching, or WAF at the API layer; need private endpoints, resource policies, or canary deployments; or are building an API product with monetization and governance requirements.
 
@@ -82,6 +83,7 @@ Choose the right API type first. This decision affects every downstream choice.
 Before implementation, gather requirements systematically. Consult `references/requirements-gathering.md` for the full requirements workflow covering endpoints, auth, data models, performance, security, and deployment needs.
 
 Key design decisions:
+
 1. **API type**: Use the decision table above
 2. **Endpoint type**: Edge-optimized (default for global clients; optimizes TCP connections via CloudFront POPs but does not cache at the edge), Regional (same-region clients, or global clients needing their own CloudFront distribution for edge caching, edge compute, granular WAF control, or geo-based routing), Private (VPC-only access, REST API only)
 3. **Topology**: Centralized (single domain, path-based routing) vs Distributed (subdomains per service)
@@ -112,6 +114,7 @@ Consult these references based on what you're building:
 Always configure access logging. For REST and WebSocket APIs, also enable execution logging (ERROR level for production, INFO only for debugging). **HTTP API does not support execution logging**; use access logs with enhanced observability variables instead.
 
 Consult `references/observability.md` for:
+
 - Recommended access log formats (separate formats for REST, HTTP API, and WebSocket)
 - Enhanced observability variables for phase-level troubleshooting (REST API: WAF -> Authenticate -> Authorizer -> Authorize -> Integration)
 - CloudWatch alarms to configure for production
@@ -129,6 +132,7 @@ Consult `references/observability.md` for:
 ### Step 6: Apply Governance
 
 For organization-wide API standards, see `references/governance.md` covering:
+
 - Preventative controls (SCPs, IAM policies)
 - Proactive controls (CloudFormation Hooks, Guard rules)
 - Detective controls (AWS Config rules, EventBridge)
@@ -137,6 +141,7 @@ For organization-wide API standards, see `references/governance.md` covering:
 ## Response Format
 
 When responding to API Gateway questions, structure your answer as:
+
 1. **Recommendation**: Lead with the recommended approach and why
 2. **Code**: Include SAM/CloudFormation YAML or code when the user needs implementation (always read the relevant reference file first)
 3. **Pitfalls**: Warn about relevant gotchas from the pitfalls below or from `references/pitfalls.md`
@@ -146,20 +151,20 @@ When responding to API Gateway questions, structure your answer as:
 
 When diagnosing API Gateway errors, consult `references/troubleshooting.md` for detailed resolution steps. Here are the most common issues:
 
-| Error | Most Common Cause | Quick Fix |
-|-------|-------------------|-----------|
-| 400 Bad Request | Protocol mismatch (HTTP/HTTPS) with ALB | Match protocol to listener type |
-| 401 Unauthorized | Wrong token type (ID vs access) or missing identity sources | Check token type matches scope config; verify all identity sources sent |
-| 403 Missing Auth Token | Stage name in URL when using custom domain | Remove stage name from URL path |
-| 403 from VPC | Private DNS on VPC endpoint intercepts ALL API calls | Use custom domain names for public APIs |
-| 403 Access Denied | Resource policy + auth type mismatch or missing redeployment | Review policy, check auth type, redeploy API |
-| 403 mTLS | Certificate issuer not in truststore or weak signature algorithm | Verify CA in truststore, use SHA-256+ |
-| 429 Too Many Requests | Account/stage/method throttle limits exceeded | Implement jittered exponential backoff; request limit increase |
-| 500 Internal Error | Missing Lambda invoke permission (especially with stage variables) | Add resource-based policy to Lambda function |
-| 502 Bad Gateway | Lambda response not in required proxy format | Return `{statusCode, headers, body}` from Lambda |
-| 504 Timeout | Backend exceeds 29s (REST, increasable) or 30s (HTTP, hard). HTTP API body says "Service Unavailable" but status is 504 | Optimize backend, request timeout increase (REST Regional/Private), or switch to async invocation |
-| CORS errors | Missing CORS headers on Gateway Responses (4XX/5XX) | Add CORS headers to DEFAULT_4XX and DEFAULT_5XX gateway responses |
-| SSL/PKIX errors | Incomplete certificate chain on backend | Provide full cert chain; use `insecureSkipVerification` only for testing |
+| Error                  | Most Common Cause                                                                                                       | Quick Fix                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 400 Bad Request        | Protocol mismatch (HTTP/HTTPS) with ALB                                                                                 | Match protocol to listener type                                                                   |
+| 401 Unauthorized       | Wrong token type (ID vs access) or missing identity sources                                                             | Check token type matches scope config; verify all identity sources sent                           |
+| 403 Missing Auth Token | Stage name in URL when using custom domain                                                                              | Remove stage name from URL path                                                                   |
+| 403 from VPC           | Private DNS on VPC endpoint intercepts ALL API calls                                                                    | Use custom domain names for public APIs                                                           |
+| 403 Access Denied      | Resource policy + auth type mismatch or missing redeployment                                                            | Review policy, check auth type, redeploy API                                                      |
+| 403 mTLS               | Certificate issuer not in truststore or weak signature algorithm                                                        | Verify CA in truststore, use SHA-256+                                                             |
+| 429 Too Many Requests  | Account/stage/method throttle limits exceeded                                                                           | Implement jittered exponential backoff; request limit increase                                    |
+| 500 Internal Error     | Missing Lambda invoke permission (especially with stage variables)                                                      | Add resource-based policy to Lambda function                                                      |
+| 502 Bad Gateway        | Lambda response not in required proxy format                                                                            | Return `{statusCode, headers, body}` from Lambda                                                  |
+| 504 Timeout            | Backend exceeds 29s (REST, increasable) or 30s (HTTP, hard). HTTP API body says "Service Unavailable" but status is 504 | Optimize backend, request timeout increase (REST Regional/Private), or switch to async invocation |
+| CORS errors            | Missing CORS headers on Gateway Responses (4XX/5XX)                                                                     | Add CORS headers to DEFAULT_4XX and DEFAULT_5XX gateway responses                                 |
+| SSL/PKIX errors        | Incomplete certificate chain on backend                                                                                 | Provide full cert chain; use `insecureSkipVerification` only for testing                          |
 
 ## Critical Pitfalls
 
@@ -201,15 +206,15 @@ When not specified, ALWAYS use CDK TypeScript.
 
 See `references/service-limits.md` for the complete table. **Most numeric quotas below are default values and adjustable**; check with your AWS account team and the [latest quotas page](https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html) before using them for architectural decisions. Key limits:
 
-| Resource | REST API | HTTP API | WebSocket |
-|----------|----------|----------|-----------|
-| Payload size | 10 MB | 10 MB | 128 KB |
-| Integration timeout | 50ms-29s (up to 300s Regional/Private) | 30s hard | 29s |
-| APIs per region | 600 Regional/Private; 120 Edge-optimized | 600 | 600 |
-| Stages per API | 10 | 10 | 10 |
-| Routes/resources per API | 300 | 300 | 300 |
-| Custom domains (public) | 120 | 120 | 120 |
-| Account throttle | 10,000 rps / 5,000 burst | Same | Same (shared quota) |
-| API keys per region | 10,000 | N/A | N/A |
-| Usage plans per region | 300 | N/A | N/A |
-| Cache sizes | 0.5 GB - 237 GB | N/A | N/A |
+| Resource                 | REST API                                 | HTTP API | WebSocket           |
+| ------------------------ | ---------------------------------------- | -------- | ------------------- |
+| Payload size             | 10 MB                                    | 10 MB    | 128 KB              |
+| Integration timeout      | 50ms-29s (up to 300s Regional/Private)   | 30s hard | 29s                 |
+| APIs per region          | 600 Regional/Private; 120 Edge-optimized | 600      | 600                 |
+| Stages per API           | 10                                       | 10       | 10                  |
+| Routes/resources per API | 300                                      | 300      | 300                 |
+| Custom domains (public)  | 120                                      | 120      | 120                 |
+| Account throttle         | 10,000 rps / 5,000 burst                 | Same     | Same (shared quota) |
+| API keys per region      | 10,000                                   | N/A      | N/A                 |
+| Usage plans per region   | 300                                      | N/A      | N/A                 |
+| Cache sizes              | 0.5 GB - 237 GB                          | N/A      | N/A                 |

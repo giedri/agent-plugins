@@ -1,21 +1,10 @@
 ---
 name: api-gateway
 description: >
-  Build, manage, govern, and operate APIs using Amazon API Gateway.
-  TRIGGER when: user asks about API Gateway configuration, architecture,
-  security, authentication, custom domains, deployments, throttling,
-  caching, CORS, VPC links, private APIs, mTLS, Lambda authorizers,
-  usage plans, monitoring, logging, or API governance. Also trigger when
-  troubleshooting API errors (400, 401, 403, 429, 500, 502, 504),
-  timeout issues, or CORS failures on API Gateway. Also trigger when
-  working with SAM, CDK, CloudFormation, or Terraform templates that
-  contain API Gateway resources (AWS::ApiGateway::*, AWS::ApiGatewayV2::*,
-  AWS::Serverless::Api, AWS::Serverless::HttpApi), or when designing
-  API architectures on AWS. Even if the user doesn't mention "API Gateway"
-  by name, trigger if they're clearly building an AWS API (e.g., "expose
-  my Lambda as a REST endpoint", "add auth to my AWS API", "my API
-  returns 502"). Do NOT trigger for general REST API design unrelated
-  to AWS, or for non-API-Gateway AWS services used independently.
+  Build, manage, and operate APIs with Amazon API Gateway (REST, HTTP, and WebSocket). 
+  Triggers on phrases like: API Gateway, REST API, HTTP API, WebSocket API, custom domain, Lambda authorizer, usage plan, throttling, CORS, VPC link, private API. 
+  Also covers troubleshooting API Gateway errors (4xx, 5xx, timeout, CORS failures) and IaC templates containing API Gateway resources. 
+  For general REST API design unrelated to AWS, do not trigger.
 metadata:
   tags: [api-gateway, serverless, aws, rest-api, http-api, websocket]
 ---
@@ -112,13 +101,11 @@ Consult these references based on what you're building:
 
 Always configure access logging. For REST and WebSocket APIs, also enable execution logging (ERROR level for production, INFO only for debugging). **HTTP API does not support execution logging**; use access logs with enhanced observability variables instead.
 
-Consult `references/observability.md` for:
+Consult the observability references based on what you need:
 
-- Recommended access log formats (separate formats for REST, HTTP API, and WebSocket)
-- Enhanced observability variables for phase-level troubleshooting (REST API: WAF -> Authenticate -> Authorizer -> Authorize -> Integration)
-- CloudWatch alarms to configure for production
-- Log retention policies (CloudWatch Logs default to Never Expire)
-- Logging setup prerequisites (different for REST/WebSocket vs HTTP API)
+- **Logging setup, log formats, retention**: `references/observability-logging.md`
+- **Metrics, alarms, metric filters, X-Ray tracing**: `references/observability-metrics-alarms.md`
+- **Log analysis and insights, analytics pipeline, cross-account, control plane logs**: `references/observability-analytics.md`
 
 ### Step 5: Deploy
 

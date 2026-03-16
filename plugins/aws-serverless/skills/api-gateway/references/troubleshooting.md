@@ -26,7 +26,7 @@
 
 1. Enable execution logging (REST/WebSocket only — [HTTP API supports access logging only](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html)) AND access logging before troubleshooting
 2. Use `x-amzn-requestid` response header to trace specific requests in execution logs
-3. Check enhanced observability variables in access logs to identify which phase failed
+3. Check enhanced observability variables in access logs to identify which phase failed (see `references/observability-logging.md`)
 4. Use CloudWatch Logs Insights for pattern analysis across many requests
 
 ### Request Phase Order

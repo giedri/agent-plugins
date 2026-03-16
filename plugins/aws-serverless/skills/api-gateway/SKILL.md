@@ -1,9 +1,9 @@
 ---
 name: api-gateway
 description: >
-  Build, manage, and operate APIs with Amazon API Gateway (REST, HTTP, and WebSocket). 
-  Triggers on phrases like: API Gateway, REST API, HTTP API, WebSocket API, custom domain, Lambda authorizer, usage plan, throttling, CORS, VPC link, private API. 
-  Also covers troubleshooting API Gateway errors (4xx, 5xx, timeout, CORS failures) and IaC templates containing API Gateway resources. 
+  Build, manage, and operate APIs with Amazon API Gateway (REST, HTTP, and WebSocket).
+  Triggers on phrases like: API Gateway, REST API, HTTP API, WebSocket API, custom domain, Lambda authorizer, usage plan, throttling, CORS, VPC link, private API.
+  Also covers troubleshooting API Gateway errors (4xx, 5xx, timeout, CORS failures) and IaC templates containing API Gateway resources.
   For general REST API design unrelated to AWS, do not trigger.
 metadata:
   tags: [api-gateway, serverless, aws, rest-api, http-api, websocket]

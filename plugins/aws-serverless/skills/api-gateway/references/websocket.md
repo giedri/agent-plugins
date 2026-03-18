@@ -54,6 +54,14 @@ ConnectIntegration:
     IntegrationType: AWS_PROXY
     IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConnectFunction.Arn}/invocations"
 
+ConnectPermission:
+  Type: AWS::Lambda::Permission
+  Properties:
+    Action: lambda:InvokeFunction
+    FunctionName: !Ref ConnectFunction
+    Principal: apigateway.amazonaws.com
+    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/$connect"
+
 DisconnectRoute:
   Type: AWS::ApiGatewayV2::Route
   Properties:
@@ -67,6 +75,14 @@ DisconnectIntegration:
     ApiId: !Ref WebSocketApi
     IntegrationType: AWS_PROXY
     IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DisconnectFunction.Arn}/invocations"
+
+DisconnectPermission:
+  Type: AWS::Lambda::Permission
+  Properties:
+    Action: lambda:InvokeFunction
+    FunctionName: !Ref DisconnectFunction
+    Principal: apigateway.amazonaws.com
+    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/$disconnect"
 
 DefaultRoute:
   Type: AWS::ApiGatewayV2::Route
@@ -82,20 +98,20 @@ DefaultIntegration:
     IntegrationType: AWS_PROXY
     IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MessageFunction.Arn}/invocations"
 
+DefaultPermission:
+  Type: AWS::Lambda::Permission
+  Properties:
+    Action: lambda:InvokeFunction
+    FunctionName: !Ref MessageFunction
+    Principal: apigateway.amazonaws.com
+    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/$default"
+
 Stage:
   Type: AWS::ApiGatewayV2::Stage
   Properties:
     ApiId: !Ref WebSocketApi
     StageName: prod
     AutoDeploy: true
-
-ConnectPermission:
-  Type: AWS::Lambda::Permission
-  Properties:
-    Action: lambda:InvokeFunction
-    FunctionName: !Ref ConnectFunction
-    Principal: apigateway.amazonaws.com
-    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/$connect"
 ```
 
 ## Lambda: Sending Messages via @connections
